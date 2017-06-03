@@ -8725,51 +8725,133 @@ var _evancz$elm_todomvc$Todo$infoFooter = A2(
 			}
 		}
 	});
-var _evancz$elm_todomvc$Todo$view = function (model) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('todomvc-wrapper'),
-			_1: {
+var _evancz$elm_todomvc$Todo$changeVisibility = F3(
+	function (uri, newVisibility, actualVisibility) {
+		return A2(
+			_elm_lang$html$Html$li,
+			{ctor: '[]'},
+			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$style(
+				_0: A2(
+					_elm_lang$html$Html$a,
 					{
 						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: 'visibility', _1: 'hidden'},
+						_0: _elm_lang$html$Html_Attributes$href(uri),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$classList(
+								{
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'selected',
+										_1: _elm_lang$core$Native_Utils.eq(newVisibility, actualVisibility)
+									},
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(newVisibility),
 						_1: {ctor: '[]'}
 					}),
 				_1: {ctor: '[]'}
-			}
-		},
+			});
+	});
+var _evancz$elm_todomvc$Todo$renderControls = F2(
+	function (visibility, entries) {
+		return A2(
+			_elm_lang$html$Html$ul,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('filters'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A3(_evancz$elm_todomvc$Todo$changeVisibility, '#/', 'All', visibility),
+				_1: {
+					ctor: '::',
+					_0: A3(_evancz$elm_todomvc$Todo$changeVisibility, '#/active', 'Active', visibility),
+					_1: {
+						ctor: '::',
+						_0: A3(_evancz$elm_todomvc$Todo$changeVisibility, '#/completed', 'Completed', visibility),
+						_1: {ctor: '[]'}
+					}
+				}
+			});
+	});
+var _evancz$elm_todomvc$Todo$renderEntry = function (entry) {
+	return A2(
+		_elm_lang$html$Html$li,
+		{ctor: '[]'},
 		{
 			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$section,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('todoapp'),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text('woohoo'),
-					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: _evancz$elm_todomvc$Todo$infoFooter,
-				_1: {ctor: '[]'}
-			}
+			_0: _elm_lang$html$Html$text(entry.description),
+			_1: {ctor: '[]'}
 		});
 };
+var _evancz$elm_todomvc$Todo$renderEntries = function (entries) {
+	return A2(
+		_elm_lang$html$Html$ul,
+		{ctor: '[]'},
+		A2(_elm_lang$core$List$map, _evancz$elm_todomvc$Todo$renderEntry, entries));
+};
+var _evancz$elm_todomvc$Todo$onEnter = function (msg) {
+	var isEnter = function (code) {
+		return _elm_lang$core$Native_Utils.eq(code, 13) ? _elm_lang$core$Json_Decode$succeed(msg) : _elm_lang$core$Json_Decode$fail('not ENTER');
+	};
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'keydown',
+		A2(_elm_lang$core$Json_Decode$andThen, isEnter, _elm_lang$html$Html_Events$keyCode));
+};
+var _evancz$elm_todomvc$Todo$newEntry = F2(
+	function (entry, uid) {
+		return {description: entry, completed: false, editing: false, id: uid};
+	});
 var _evancz$elm_todomvc$Todo$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
-		return A2(
-			_elm_lang$core$Platform_Cmd_ops['!'],
-			model,
-			{ctor: '[]'});
+		switch (_p0.ctor) {
+			case 'NoOp':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					{ctor: '[]'});
+			case 'Input':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					{ctor: '[]'});
+			case 'UpdateField':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{field: _p0._0}),
+					{ctor: '[]'});
+			default:
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							uid: model.uid + 1,
+							field: '',
+							entries: _elm_lang$core$String$isEmpty(model.field) ? model.entries : A2(
+								_elm_lang$core$Basics_ops['++'],
+								model.entries,
+								{
+									ctor: '::',
+									_0: A2(_evancz$elm_todomvc$Todo$newEntry, model.field, model.uid),
+									_1: {ctor: '[]'}
+								})
+						}),
+					{ctor: '[]'});
+		}
 	});
 var _evancz$elm_todomvc$Todo$emptyModel = {
 	entries: {ctor: '[]'},
@@ -8786,14 +8868,6 @@ var _evancz$elm_todomvc$Todo$init = function (savedModel) {
 var _evancz$elm_todomvc$Todo$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$none;
 };
-var _evancz$elm_todomvc$Todo$main = _elm_lang$html$Html$program(
-	{
-		init: _evancz$elm_todomvc$Todo$init(
-			_elm_lang$core$Maybe$Just(_evancz$elm_todomvc$Todo$emptyModel)),
-		view: _evancz$elm_todomvc$Todo$view,
-		update: _evancz$elm_todomvc$Todo$update,
-		subscriptions: _evancz$elm_todomvc$Todo$subscriptions
-	})();
 var _evancz$elm_todomvc$Todo$Model = F4(
 	function (a, b, c, d) {
 		return {entries: a, field: b, uid: c, visibility: d};
@@ -8802,6 +8876,103 @@ var _evancz$elm_todomvc$Todo$Entry = F4(
 	function (a, b, c, d) {
 		return {description: a, completed: b, editing: c, id: d};
 	});
+var _evancz$elm_todomvc$Todo$Completed = {ctor: 'Completed'};
+var _evancz$elm_todomvc$Todo$Active = {ctor: 'Active'};
+var _evancz$elm_todomvc$Todo$All = {ctor: 'All'};
+var _evancz$elm_todomvc$Todo$Add = {ctor: 'Add'};
+var _evancz$elm_todomvc$Todo$UpdateField = function (a) {
+	return {ctor: 'UpdateField', _0: a};
+};
+var _evancz$elm_todomvc$Todo$renderInput = function (task) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$input,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('new-todo'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$placeholder('Enter an item'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$value(task),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$autofocus(true),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onInput(_evancz$elm_todomvc$Todo$UpdateField),
+									_1: {
+										ctor: '::',
+										_0: _evancz$elm_todomvc$Todo$onEnter(_evancz$elm_todomvc$Todo$Add),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}
+					}
+				},
+				{ctor: '[]'}),
+			_1: {ctor: '[]'}
+		});
+};
+var _evancz$elm_todomvc$Todo$view = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('todomvc-wrapper'),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$style(
+					{
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'visibility', _1: ''},
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$section,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('todoapp'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: A2(_elm_lang$html$Html_Lazy$lazy, _evancz$elm_todomvc$Todo$renderInput, model.field),
+					_1: {
+						ctor: '::',
+						_0: A2(_elm_lang$html$Html_Lazy$lazy, _evancz$elm_todomvc$Todo$renderEntries, model.entries),
+						_1: {
+							ctor: '::',
+							_0: A3(_elm_lang$html$Html_Lazy$lazy2, _evancz$elm_todomvc$Todo$renderControls, model.visibility, model.entries),
+							_1: {ctor: '[]'}
+						}
+					}
+				}),
+			_1: {ctor: '[]'}
+		});
+};
+var _evancz$elm_todomvc$Todo$main = _elm_lang$html$Html$program(
+	{
+		init: _evancz$elm_todomvc$Todo$init(
+			_elm_lang$core$Maybe$Just(_evancz$elm_todomvc$Todo$emptyModel)),
+		view: _evancz$elm_todomvc$Todo$view,
+		update: _evancz$elm_todomvc$Todo$update,
+		subscriptions: _evancz$elm_todomvc$Todo$subscriptions
+	})();
+var _evancz$elm_todomvc$Todo$Input = function (a) {
+	return {ctor: 'Input', _0: a};
+};
 var _evancz$elm_todomvc$Todo$NoOp = {ctor: 'NoOp'};
 
 var Elm = {};

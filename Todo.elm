@@ -20,6 +20,12 @@ main =
         }
 
 
+type VisibilityState
+    = All
+    | Active
+    | Completed
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -61,6 +67,9 @@ init savedModel =
 
 type Msg
     = NoOp
+    | Input String
+    | UpdateField String
+    | Add
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -68,6 +77,33 @@ update msg model =
     case msg of
         NoOp ->
             model ! []
+
+        Input str ->
+            model ! []
+
+        UpdateField entry ->
+            { model | field = entry } ! []
+
+        Add ->
+            { model
+                | uid = model.uid + 1
+                , field = ""
+                , entries =
+                    if String.isEmpty model.field then
+                        model.entries
+                    else
+                        model.entries ++ [ newEntry model.field model.uid ]
+            }
+                ! []
+
+
+newEntry : String -> Int -> Entry
+newEntry entry uid =
+    { description = entry
+    , completed = False
+    , editing = False
+    , id = uid
+    }
 
 
 
@@ -82,8 +118,71 @@ view model =
         ]
         [ section
             [ class "todoapp" ]
+            [ lazy renderInput model.field
+            , lazy renderEntries model.entries
+            , lazy2 renderControls model.visibility model.entries
+            ]
+        ]
+
+
+renderInput : String -> Html Msg
+renderInput task =
+    div []
+        [ input
+            [ class "new-todo"
+            , placeholder "Enter an item"
+            , value task
+            , autofocus True
+            , onInput UpdateField
+            , onEnter Add
+            ]
             []
-        , infoFooter
+        ]
+
+
+onEnter : Msg -> Attribute Msg
+onEnter msg =
+    let
+        isEnter code =
+            if code == 13 then
+                Json.succeed msg
+            else
+                Json.fail "not ENTER"
+    in
+        on "keydown" (Json.andThen isEnter keyCode)
+
+
+renderEntries : List Entry -> Html Msg
+renderEntries entries =
+    ul []
+        (List.map
+            renderEntry
+            entries
+        )
+
+
+renderEntry : Entry -> Html Msg
+renderEntry entry =
+    li [] [ text entry.description ]
+
+
+renderControls : String -> List Entry -> Html Msg
+renderControls visibility entries =
+    ul [ class "filters" ]
+        [ changeVisibility "#/" "All" visibility
+        , changeVisibility "#/active" "Active" visibility
+        , changeVisibility "#/completed" "Completed" visibility
+        ]
+
+
+changeVisibility : String -> String -> String -> Html Msg
+changeVisibility uri newVisibility actualVisibility =
+    li []
+        [ a
+            [ href uri
+            , classList [ ( "selected", newVisibility == actualVisibility ) ]
+            ]
+            [ text newVisibility ]
         ]
 
 

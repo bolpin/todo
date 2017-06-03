@@ -8783,21 +8783,8 @@ var _evancz$elm_todomvc$Todo$renderControls = F2(
 				}
 			});
 	});
-var _evancz$elm_todomvc$Todo$renderEntry = function (entry) {
-	return A2(
-		_elm_lang$html$Html$li,
-		{ctor: '[]'},
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html$text(entry.description),
-			_1: {ctor: '[]'}
-		});
-};
-var _evancz$elm_todomvc$Todo$renderEntries = function (entries) {
-	return A2(
-		_elm_lang$html$Html$ul,
-		{ctor: '[]'},
-		A2(_elm_lang$core$List$map, _evancz$elm_todomvc$Todo$renderEntry, entries));
+var _evancz$elm_todomvc$Todo$getTaskColor = function (completed) {
+	return completed ? 'line-through' : 'none';
 };
 var _evancz$elm_todomvc$Todo$onEnter = function (msg) {
 	var isEnter = function (code) {
@@ -8833,7 +8820,7 @@ var _evancz$elm_todomvc$Todo$update = F2(
 						model,
 						{field: _p0._0}),
 					{ctor: '[]'});
-			default:
+			case 'Add':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
@@ -8849,6 +8836,20 @@ var _evancz$elm_todomvc$Todo$update = F2(
 									_0: A2(_evancz$elm_todomvc$Todo$newEntry, model.field, model.uid),
 									_1: {ctor: '[]'}
 								})
+						}),
+					{ctor: '[]'});
+			default:
+				var updateEntry = function (task) {
+					return _elm_lang$core$Native_Utils.eq(task.id, _p0._0) ? _elm_lang$core$Native_Utils.update(
+						task,
+						{completed: _p0._1}) : task;
+				};
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							entries: A2(_elm_lang$core$List$map, updateEntry, model.entries)
 						}),
 					{ctor: '[]'});
 		}
@@ -8876,9 +8877,54 @@ var _evancz$elm_todomvc$Todo$Entry = F4(
 	function (a, b, c, d) {
 		return {description: a, completed: b, editing: c, id: d};
 	});
-var _evancz$elm_todomvc$Todo$Completed = {ctor: 'Completed'};
-var _evancz$elm_todomvc$Todo$Active = {ctor: 'Active'};
-var _evancz$elm_todomvc$Todo$All = {ctor: 'All'};
+var _evancz$elm_todomvc$Todo$SetState = F2(
+	function (a, b) {
+		return {ctor: 'SetState', _0: a, _1: b};
+	});
+var _evancz$elm_todomvc$Todo$renderEntry = function (entry) {
+	var newState = function (oldState) {
+		return oldState ? false : true;
+	};
+	return A2(
+		_elm_lang$html$Html$li,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Events$onClick(
+				A2(
+					_evancz$elm_todomvc$Todo$SetState,
+					entry.id,
+					newState(entry.completed))),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$style(
+					{
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'text-decoration',
+							_1: _evancz$elm_todomvc$Todo$getTaskColor(entry.completed)
+						},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'cursor', _1: 'pointer'},
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {ctor: '[]'}
+			}
+		},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text(entry.description),
+			_1: {ctor: '[]'}
+		});
+};
+var _evancz$elm_todomvc$Todo$renderEntries = function (entries) {
+	return A2(
+		_elm_lang$html$Html$ul,
+		{ctor: '[]'},
+		A2(_elm_lang$core$List$map, _evancz$elm_todomvc$Todo$renderEntry, entries));
+};
 var _evancz$elm_todomvc$Todo$Add = {ctor: 'Add'};
 var _evancz$elm_todomvc$Todo$UpdateField = function (a) {
 	return {ctor: 'UpdateField', _0: a};

@@ -20,12 +20,6 @@ main =
         }
 
 
-type VisibilityState
-    = All
-    | Active
-    | Completed
-
-
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -70,6 +64,7 @@ type Msg
     | Input String
     | UpdateField String
     | Add
+    | SetState Int Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -95,6 +90,17 @@ update msg model =
                         model.entries ++ [ newEntry model.field model.uid ]
             }
                 ! []
+
+        SetState id newState ->
+            let
+                updateEntry task =
+                    if task.id == id then
+                        { task | completed = newState }
+                    else
+                        task
+            in
+                { model | entries = List.map updateEntry model.entries }
+                    ! []
 
 
 newEntry : String -> Int -> Entry
@@ -163,7 +169,29 @@ renderEntries entries =
 
 renderEntry : Entry -> Html Msg
 renderEntry entry =
-    li [] [ text entry.description ]
+    let
+        newState oldState =
+            if oldState then
+                False
+            else
+                True
+    in
+        li
+            [ onClick (SetState entry.id (newState entry.completed))
+            , style
+                [ ( "text-decoration", getTaskColor entry.completed )
+                , ( "cursor", "pointer" )
+                ]
+            ]
+            [ text entry.description ]
+
+
+getTaskColor : Bool -> String
+getTaskColor completed =
+    if completed then
+        "line-through"
+    else
+        "none"
 
 
 renderControls : String -> List Entry -> Html Msg

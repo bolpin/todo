@@ -66,6 +66,7 @@ type Msg
     | SetState Int Bool
     | ChangeVisibility String
     | CheckAll Bool
+    | DeleteAllCompleted
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -81,6 +82,10 @@ update msg model =
             in
                 { model | entries = List.map updateCompletedState model.entries }
                     ! []
+
+        DeleteAllCompleted ->
+            { model | entries = List.filter (not << .completed) model.entries }
+                ! []
 
         UpdateField entry ->
             { model | field = entry } ! []
@@ -135,7 +140,8 @@ view model =
             [ class "todoapp" ]
             [ lazy renderInput model.field
             , lazy2 renderEntries model.visibility model.entries
-            , lazy2 renderControls model.visibility model.entries
+            , lazy2 renderVisibilityControls model.visibility model.entries
+            , renderDeleteCompletedControl
             ]
         ]
 
@@ -240,13 +246,19 @@ getTaskColor completed =
         "none"
 
 
-renderControls : String -> List Entry -> Html Msg
-renderControls visibility entries =
+renderVisibilityControls : String -> List Entry -> Html Msg
+renderVisibilityControls visibility entries =
     ul [ class "filters" ]
         [ visibilitySwitch "#/" "All" visibility
         , visibilitySwitch "#/active" "Active" visibility
         , visibilitySwitch "#/completed" "Completed" visibility
         ]
+
+
+renderDeleteCompletedControl : Html Msg
+renderDeleteCompletedControl =
+    button [ onClick DeleteAllCompleted ]
+        [ text "Clear All Completed Tasks" ]
 
 
 visibilitySwitch : String -> String -> String -> Html Msg

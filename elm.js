@@ -8750,10 +8750,35 @@ var _evancz$elm_todomvc$Todo$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					model,
 					{ctor: '[]'});
-			case 'Input':
+			case 'CheckAll':
+				var updateCompletedState = function (task) {
+					return _elm_lang$core$Native_Utils.update(
+						task,
+						{completed: _p0._0});
+				};
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							entries: A2(_elm_lang$core$List$map, updateCompletedState, model.entries)
+						}),
+					{ctor: '[]'});
+			case 'DeleteAllCompleted':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							entries: A2(
+								_elm_lang$core$List$filter,
+								function (_p1) {
+									return !function (_) {
+										return _.completed;
+									}(_p1);
+								},
+								model.entries)
+						}),
 					{ctor: '[]'});
 			case 'UpdateField':
 				return A2(
@@ -8826,6 +8851,10 @@ var _evancz$elm_todomvc$Todo$Entry = F4(
 	function (a, b, c, d) {
 		return {description: a, completed: b, editing: c, id: d};
 	});
+var _evancz$elm_todomvc$Todo$DeleteAllCompleted = {ctor: 'DeleteAllCompleted'};
+var _evancz$elm_todomvc$Todo$CheckAll = function (a) {
+	return {ctor: 'CheckAll', _0: a};
+};
 var _evancz$elm_todomvc$Todo$ChangeVisibility = function (a) {
 	return {ctor: 'ChangeVisibility', _0: a};
 };
@@ -8942,9 +8971,10 @@ var _evancz$elm_todomvc$Todo$renderEntries = F2(
 				return _.completed;
 			},
 			entries);
+		var cssVisibility = _elm_lang$core$List$isEmpty(entries) ? 'hidden' : 'visible';
 		var isVisible = function (task) {
-			var _p1 = visibility;
-			switch (_p1) {
+			var _p2 = visibility;
+			switch (_p2) {
 				case 'Completed':
 					return task.completed;
 				case 'Active':
@@ -8954,12 +8984,75 @@ var _evancz$elm_todomvc$Todo$renderEntries = F2(
 			}
 		};
 		return A2(
-			_elm_lang$html$Html$ul,
-			{ctor: '[]'},
-			A2(
-				_elm_lang$core$List$map,
-				_evancz$elm_todomvc$Todo$renderEntry,
-				A2(_elm_lang$core$List$filter, isVisible, entries)));
+			_elm_lang$html$Html$section,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('main'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$style(
+						{
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'visibility', _1: cssVisibility},
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$input,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('toggle-all'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$name('toggle'),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$checked(allCompleted),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Events$onClick(
+											_evancz$elm_todomvc$Todo$CheckAll(!allCompleted)),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}
+					},
+					{ctor: '[]'}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$label,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$for('toggle-all'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Mark all as complete'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$ul,
+							{ctor: '[]'},
+							A2(
+								_elm_lang$core$List$map,
+								_evancz$elm_todomvc$Todo$renderEntry,
+								A2(_elm_lang$core$List$filter, isVisible, entries))),
+						_1: {ctor: '[]'}
+					}
+				}
+			});
 	});
 var _evancz$elm_todomvc$Todo$Add = {ctor: 'Add'};
 var _evancz$elm_todomvc$Todo$UpdateField = function (a) {
@@ -8978,7 +9071,7 @@ var _evancz$elm_todomvc$Todo$renderInput = function (task) {
 					_0: _elm_lang$html$Html_Attributes$class('new-todo'),
 					_1: {
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$placeholder('Enter an item'),
+						_0: _elm_lang$html$Html_Attributes$placeholder('Enter a new task'),
 						_1: {
 							ctor: '::',
 							_0: _elm_lang$html$Html_Attributes$value(task),
@@ -9052,9 +9145,6 @@ var _evancz$elm_todomvc$Todo$main = _elm_lang$html$Html$program(
 		update: _evancz$elm_todomvc$Todo$update,
 		subscriptions: _evancz$elm_todomvc$Todo$subscriptions
 	})();
-var _evancz$elm_todomvc$Todo$Input = function (a) {
-	return {ctor: 'Input', _0: a};
-};
 var _evancz$elm_todomvc$Todo$NoOp = {ctor: 'NoOp'};
 
 var Elm = {};

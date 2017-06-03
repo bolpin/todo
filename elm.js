@@ -8725,64 +8725,6 @@ var _evancz$elm_todomvc$Todo$infoFooter = A2(
 			}
 		}
 	});
-var _evancz$elm_todomvc$Todo$changeVisibility = F3(
-	function (uri, newVisibility, actualVisibility) {
-		return A2(
-			_elm_lang$html$Html$li,
-			{ctor: '[]'},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$a,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$href(uri),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$classList(
-								{
-									ctor: '::',
-									_0: {
-										ctor: '_Tuple2',
-										_0: 'selected',
-										_1: _elm_lang$core$Native_Utils.eq(newVisibility, actualVisibility)
-									},
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}
-					},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text(newVisibility),
-						_1: {ctor: '[]'}
-					}),
-				_1: {ctor: '[]'}
-			});
-	});
-var _evancz$elm_todomvc$Todo$renderControls = F2(
-	function (visibility, entries) {
-		return A2(
-			_elm_lang$html$Html$ul,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('filters'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A3(_evancz$elm_todomvc$Todo$changeVisibility, '#/', 'All', visibility),
-				_1: {
-					ctor: '::',
-					_0: A3(_evancz$elm_todomvc$Todo$changeVisibility, '#/active', 'Active', visibility),
-					_1: {
-						ctor: '::',
-						_0: A3(_evancz$elm_todomvc$Todo$changeVisibility, '#/completed', 'Completed', visibility),
-						_1: {ctor: '[]'}
-					}
-				}
-			});
-	});
 var _evancz$elm_todomvc$Todo$getTaskColor = function (completed) {
 	return completed ? 'line-through' : 'none';
 };
@@ -8819,6 +8761,13 @@ var _evancz$elm_todomvc$Todo$update = F2(
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{field: _p0._0}),
+					{ctor: '[]'});
+			case 'ChangeVisibility':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{visibility: _p0._0}),
 					{ctor: '[]'});
 			case 'Add':
 				return A2(
@@ -8877,6 +8826,72 @@ var _evancz$elm_todomvc$Todo$Entry = F4(
 	function (a, b, c, d) {
 		return {description: a, completed: b, editing: c, id: d};
 	});
+var _evancz$elm_todomvc$Todo$ChangeVisibility = function (a) {
+	return {ctor: 'ChangeVisibility', _0: a};
+};
+var _evancz$elm_todomvc$Todo$visibilitySwitch = F3(
+	function (uri, newVisibility, actualVisibility) {
+		return A2(
+			_elm_lang$html$Html$li,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Events$onClick(
+					_evancz$elm_todomvc$Todo$ChangeVisibility(newVisibility)),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$a,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$href(uri),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$classList(
+								{
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'selected',
+										_1: _elm_lang$core$Native_Utils.eq(newVisibility, actualVisibility)
+									},
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(newVisibility),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
+var _evancz$elm_todomvc$Todo$renderControls = F2(
+	function (visibility, entries) {
+		return A2(
+			_elm_lang$html$Html$ul,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('filters'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A3(_evancz$elm_todomvc$Todo$visibilitySwitch, '#/', 'All', visibility),
+				_1: {
+					ctor: '::',
+					_0: A3(_evancz$elm_todomvc$Todo$visibilitySwitch, '#/active', 'Active', visibility),
+					_1: {
+						ctor: '::',
+						_0: A3(_evancz$elm_todomvc$Todo$visibilitySwitch, '#/completed', 'Completed', visibility),
+						_1: {ctor: '[]'}
+					}
+				}
+			});
+	});
 var _evancz$elm_todomvc$Todo$SetState = F2(
 	function (a, b) {
 		return {ctor: 'SetState', _0: a, _1: b};
@@ -8919,12 +8934,33 @@ var _evancz$elm_todomvc$Todo$renderEntry = function (entry) {
 			_1: {ctor: '[]'}
 		});
 };
-var _evancz$elm_todomvc$Todo$renderEntries = function (entries) {
-	return A2(
-		_elm_lang$html$Html$ul,
-		{ctor: '[]'},
-		A2(_elm_lang$core$List$map, _evancz$elm_todomvc$Todo$renderEntry, entries));
-};
+var _evancz$elm_todomvc$Todo$renderEntries = F2(
+	function (visibility, entries) {
+		var allCompleted = A2(
+			_elm_lang$core$List$all,
+			function (_) {
+				return _.completed;
+			},
+			entries);
+		var isVisible = function (task) {
+			var _p1 = visibility;
+			switch (_p1) {
+				case 'Completed':
+					return task.completed;
+				case 'Active':
+					return !task.completed;
+				default:
+					return true;
+			}
+		};
+		return A2(
+			_elm_lang$html$Html$ul,
+			{ctor: '[]'},
+			A2(
+				_elm_lang$core$List$map,
+				_evancz$elm_todomvc$Todo$renderEntry,
+				A2(_elm_lang$core$List$filter, isVisible, entries)));
+	});
 var _evancz$elm_todomvc$Todo$Add = {ctor: 'Add'};
 var _evancz$elm_todomvc$Todo$UpdateField = function (a) {
 	return {ctor: 'UpdateField', _0: a};
@@ -8997,7 +9033,7 @@ var _evancz$elm_todomvc$Todo$view = function (model) {
 					_0: A2(_elm_lang$html$Html_Lazy$lazy, _evancz$elm_todomvc$Todo$renderInput, model.field),
 					_1: {
 						ctor: '::',
-						_0: A2(_elm_lang$html$Html_Lazy$lazy, _evancz$elm_todomvc$Todo$renderEntries, model.entries),
+						_0: A3(_elm_lang$html$Html_Lazy$lazy2, _evancz$elm_todomvc$Todo$renderEntries, model.visibility, model.entries),
 						_1: {
 							ctor: '::',
 							_0: A3(_elm_lang$html$Html_Lazy$lazy2, _evancz$elm_todomvc$Todo$renderControls, model.visibility, model.entries),

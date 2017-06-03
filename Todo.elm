@@ -65,6 +65,7 @@ type Msg
     | UpdateField String
     | Add
     | SetState Int Bool
+    | ChangeVisibility String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -78,6 +79,9 @@ update msg model =
 
         UpdateField entry ->
             { model | field = entry } ! []
+
+        ChangeVisibility newVisibility ->
+            { model | visibility = newVisibility } ! []
 
         Add ->
             { model
@@ -125,7 +129,7 @@ view model =
         [ section
             [ class "todoapp" ]
             [ lazy renderInput model.field
-            , lazy renderEntries model.entries
+            , lazy2 renderEntries model.visibility model.entries
             , lazy2 renderControls model.visibility model.entries
             ]
         ]
@@ -158,13 +162,31 @@ onEnter msg =
         on "keydown" (Json.andThen isEnter keyCode)
 
 
-renderEntries : List Entry -> Html Msg
-renderEntries entries =
-    ul []
-        (List.map
-            renderEntry
-            entries
-        )
+renderEntries : String -> List Entry -> Html Msg
+renderEntries visibility entries =
+    let
+        isVisible task =
+            case visibility of
+                "Completed" ->
+                    task.completed
+
+                "Active" ->
+                    not task.completed
+
+                _ ->
+                    True
+
+        allCompleted =
+            List.all .completed entries
+    in
+        ul []
+            -- entries
+            -- |> filterByVisibility visibility
+            -- |> List.map renderEntry
+            (List.map
+                renderEntry
+                (List.filter isVisible entries)
+            )
 
 
 renderEntry : Entry -> Html Msg
@@ -197,15 +219,15 @@ getTaskColor completed =
 renderControls : String -> List Entry -> Html Msg
 renderControls visibility entries =
     ul [ class "filters" ]
-        [ changeVisibility "#/" "All" visibility
-        , changeVisibility "#/active" "Active" visibility
-        , changeVisibility "#/completed" "Completed" visibility
+        [ visibilitySwitch "#/" "All" visibility
+        , visibilitySwitch "#/active" "Active" visibility
+        , visibilitySwitch "#/completed" "Completed" visibility
         ]
 
 
-changeVisibility : String -> String -> String -> Html Msg
-changeVisibility uri newVisibility actualVisibility =
-    li []
+visibilitySwitch : String -> String -> String -> Html Msg
+visibilitySwitch uri newVisibility actualVisibility =
+    li [ onClick (ChangeVisibility newVisibility) ]
         [ a
             [ href uri
             , classList [ ( "selected", newVisibility == actualVisibility ) ]

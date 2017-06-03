@@ -61,11 +61,11 @@ init savedModel =
 
 type Msg
     = NoOp
-    | Input String
     | UpdateField String
     | Add
     | SetState Int Bool
     | ChangeVisibility String
+    | CheckAll Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -74,8 +74,13 @@ update msg model =
         NoOp ->
             model ! []
 
-        Input str ->
-            model ! []
+        CheckAll isCompleted ->
+            let
+                updateCompletedState task =
+                    { task | completed = isCompleted }
+            in
+                { model | entries = List.map updateCompletedState model.entries }
+                    ! []
 
         UpdateField entry ->
             { model | field = entry } ! []
@@ -140,7 +145,7 @@ renderInput task =
     div []
         [ input
             [ class "new-todo"
-            , placeholder "Enter an item"
+            , placeholder "Enter a new task"
             , value task
             , autofocus True
             , onInput UpdateField
@@ -176,17 +181,36 @@ renderEntries visibility entries =
                 _ ->
                     True
 
+        cssVisibility =
+            if List.isEmpty entries then
+                "hidden"
+            else
+                "visible"
+
         allCompleted =
             List.all .completed entries
     in
-        ul []
-            -- entries
-            -- |> filterByVisibility visibility
-            -- |> List.map renderEntry
-            (List.map
-                renderEntry
-                (List.filter isVisible entries)
-            )
+        section
+            [ class "main"
+            , style [ ( "visibility", cssVisibility ) ]
+            ]
+            [ input
+                [ class "toggle-all"
+                , type_ "checkbox"
+                , name "toggle"
+                , checked allCompleted
+                , onClick (CheckAll (not allCompleted))
+                ]
+                []
+            , label
+                [ for "toggle-all" ]
+                [ text "Mark all as complete" ]
+            , ul []
+                (List.map
+                    renderEntry
+                    (List.filter isVisible entries)
+                )
+            ]
 
 
 renderEntry : Entry -> Html Msg

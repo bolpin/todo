@@ -12,12 +12,16 @@ import Task
 
 
 main =
-    Html.program
-        { init = init (Just emptyModel)
+    Html.programWithFlags
+        { init = init
         , view = view
-        , update = update
+        , update = updateWithStorage
         , subscriptions = subscriptions
         }
+
+
+
+-- { init = init (Just emptyModel)
 
 
 subscriptions : Model -> Sub Msg
@@ -67,6 +71,18 @@ type Msg
     | ChangeVisibility String
     | CheckAll Bool
     | DeleteAllCompleted
+
+
+port setStorage : Model -> Cmd msg
+
+
+updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
+updateWithStorage msg model =
+    let
+        ( newModel, cmds ) =
+            update msg model
+    in
+        ( newModel, Cmd.batch [ setStorage newModel, cmds ] )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

@@ -11,6 +11,7 @@ import String
 import Task
 
 
+main : Program (Maybe Model) Model Msg
 main =
     Html.programWithFlags
         { init = init
@@ -20,8 +21,9 @@ main =
         }
 
 
-
--- { init = init (Just emptyModel)
+init : Maybe Model -> ( Model, Cmd Msg )
+init savedModel =
+    Maybe.withDefault emptyModel savedModel ! []
 
 
 subscriptions : Model -> Sub Msg
@@ -58,9 +60,8 @@ emptyModel =
     }
 
 
-init : Maybe Model -> ( Model, Cmd Msg )
-init savedModel =
-    Maybe.withDefault emptyModel savedModel ! []
+
+-- UPDATE
 
 
 type Msg
@@ -156,10 +157,28 @@ view model =
             [ class "todoapp" ]
             [ lazy renderInput model.field
             , lazy2 renderEntries model.visibility model.entries
-            , lazy2 renderVisibilityControls model.visibility model.entries
-            , renderDeleteCompletedControl
+            , lazy2 renderControls model.visibility model.entries
             ]
         ]
+
+
+renderControls : String -> List Entry -> Html Msg
+renderControls visibility entries =
+    let
+        entriesCompleted =
+            List.length (List.filter .completed entries)
+
+        entriesLeft =
+            List.length entries - entriesCompleted
+    in
+        footer
+            [ class "footer"
+            , hidden (List.isEmpty entries)
+            ]
+            [ lazy renderControlsCount entriesLeft
+            , lazy renderControlsVisibility visibility
+            , lazy renderDeleteControl entriesCompleted
+            ]
 
 
 renderInput : String -> Html Msg
@@ -227,12 +246,16 @@ renderEntries visibility entries =
             , label
                 [ for "toggle-all" ]
                 [ text "Mark all as complete" ]
-            , ul []
-                (List.map
-                    renderEntry
+            , Keyed.ul [ class "todo-list" ] <|
+                List.map
+                    renderKeyedEntry
                     (List.filter isVisible entries)
-                )
             ]
+
+
+renderKeyedEntry : Entry -> ( String, Html Msg )
+renderKeyedEntry task =
+    ( toString task.id, lazy renderEntry task )
 
 
 renderEntry : Entry -> Html Msg
@@ -247,23 +270,28 @@ renderEntry entry =
         li
             [ onClick (SetState entry.id (newState entry.completed))
             , style
-                [ ( "text-decoration", getTaskColor entry.completed )
+                [ ( "text-decoration", getTaskTextDecoration entry.completed )
                 , ( "cursor", "pointer" )
                 ]
             ]
             [ text entry.description ]
 
 
-getTaskColor : Bool -> String
-getTaskColor completed =
+getTaskTextDecoration : Bool -> String
+getTaskTextDecoration completed =
     if completed then
         "line-through"
     else
         "none"
 
 
-renderVisibilityControls : String -> List Entry -> Html Msg
-renderVisibilityControls visibility entries =
+renderControlsCount : Int -> Html Msg
+renderControlsCount count =
+    span [ class "todo-count" ] [ text (toString count ++ " remaining") ]
+
+
+renderControlsVisibility : String -> Html Msg
+renderControlsVisibility visibility =
     ul [ class "filters" ]
         [ visibilitySwitch "#/" "All" visibility
         , visibilitySwitch "#/active" "Active" visibility
@@ -271,9 +299,13 @@ renderVisibilityControls visibility entries =
         ]
 
 
-renderDeleteCompletedControl : Html Msg
-renderDeleteCompletedControl =
-    button [ onClick DeleteAllCompleted ]
+renderDeleteControl : Int -> Html Msg
+renderDeleteControl entriesCompleted =
+    button
+        [ class "clear-completed"
+        , hidden (entriesCompleted == 0)
+        , onClick DeleteAllCompleted
+        ]
         [ text "Clear All Completed Tasks" ]
 
 

@@ -8725,7 +8725,25 @@ var _evancz$elm_todomvc$Todo$infoFooter = A2(
 			}
 		}
 	});
-var _evancz$elm_todomvc$Todo$getTaskColor = function (completed) {
+var _evancz$elm_todomvc$Todo$renderControlsCount = function (count) {
+	return A2(
+		_elm_lang$html$Html$span,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('todo-count'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text(
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_elm_lang$core$Basics$toString(count),
+					' remaining')),
+			_1: {ctor: '[]'}
+		});
+};
+var _evancz$elm_todomvc$Todo$getTaskTextDecoration = function (completed) {
 	return completed ? 'line-through' : 'none';
 };
 var _evancz$elm_todomvc$Todo$onEnter = function (msg) {
@@ -8834,15 +8852,48 @@ var _evancz$elm_todomvc$Todo$emptyModel = {
 	field: '',
 	uid: 0
 };
+var _evancz$elm_todomvc$Todo$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$none;
+};
 var _evancz$elm_todomvc$Todo$init = function (savedModel) {
 	return A2(
 		_elm_lang$core$Platform_Cmd_ops['!'],
 		A2(_elm_lang$core$Maybe$withDefault, _evancz$elm_todomvc$Todo$emptyModel, savedModel),
 		{ctor: '[]'});
 };
-var _evancz$elm_todomvc$Todo$subscriptions = function (model) {
-	return _elm_lang$core$Platform_Sub$none;
-};
+var _evancz$elm_todomvc$Todo$setStorage = _elm_lang$core$Native_Platform.outgoingPort(
+	'setStorage',
+	function (v) {
+		return {
+			entries: _elm_lang$core$Native_List.toArray(v.entries).map(
+				function (v) {
+					return {description: v.description, completed: v.completed, editing: v.editing, id: v.id};
+				}),
+			field: v.field,
+			uid: v.uid,
+			visibility: v.visibility
+		};
+	});
+var _evancz$elm_todomvc$Todo$updateWithStorage = F2(
+	function (msg, model) {
+		var _p2 = A2(_evancz$elm_todomvc$Todo$update, msg, model);
+		var newModel = _p2._0;
+		var cmds = _p2._1;
+		return {
+			ctor: '_Tuple2',
+			_0: newModel,
+			_1: _elm_lang$core$Platform_Cmd$batch(
+				{
+					ctor: '::',
+					_0: _evancz$elm_todomvc$Todo$setStorage(newModel),
+					_1: {
+						ctor: '::',
+						_0: cmds,
+						_1: {ctor: '[]'}
+					}
+				})
+		};
+	});
 var _evancz$elm_todomvc$Todo$Model = F4(
 	function (a, b, c, d) {
 		return {entries: a, field: b, uid: c, visibility: d};
@@ -8852,6 +8903,29 @@ var _evancz$elm_todomvc$Todo$Entry = F4(
 		return {description: a, completed: b, editing: c, id: d};
 	});
 var _evancz$elm_todomvc$Todo$DeleteAllCompleted = {ctor: 'DeleteAllCompleted'};
+var _evancz$elm_todomvc$Todo$renderDeleteControl = function (entriesCompleted) {
+	return A2(
+		_elm_lang$html$Html$button,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('clear-completed'),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$hidden(
+					_elm_lang$core$Native_Utils.eq(entriesCompleted, 0)),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Events$onClick(_evancz$elm_todomvc$Todo$DeleteAllCompleted),
+					_1: {ctor: '[]'}
+				}
+			}
+		},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text('Clear All Completed Tasks'),
+			_1: {ctor: '[]'}
+		});
+};
 var _evancz$elm_todomvc$Todo$CheckAll = function (a) {
 	return {ctor: 'CheckAll', _0: a};
 };
@@ -8898,24 +8972,59 @@ var _evancz$elm_todomvc$Todo$visibilitySwitch = F3(
 				_1: {ctor: '[]'}
 			});
 	});
+var _evancz$elm_todomvc$Todo$renderControlsVisibility = function (visibility) {
+	return A2(
+		_elm_lang$html$Html$ul,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('filters'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A3(_evancz$elm_todomvc$Todo$visibilitySwitch, '#/', 'All', visibility),
+			_1: {
+				ctor: '::',
+				_0: A3(_evancz$elm_todomvc$Todo$visibilitySwitch, '#/active', 'Active', visibility),
+				_1: {
+					ctor: '::',
+					_0: A3(_evancz$elm_todomvc$Todo$visibilitySwitch, '#/completed', 'Completed', visibility),
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
 var _evancz$elm_todomvc$Todo$renderControls = F2(
 	function (visibility, entries) {
+		var entriesCompleted = _elm_lang$core$List$length(
+			A2(
+				_elm_lang$core$List$filter,
+				function (_) {
+					return _.completed;
+				},
+				entries));
+		var entriesLeft = _elm_lang$core$List$length(entries) - entriesCompleted;
 		return A2(
-			_elm_lang$html$Html$ul,
+			_elm_lang$html$Html$footer,
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('filters'),
-				_1: {ctor: '[]'}
+				_0: _elm_lang$html$Html_Attributes$class('footer'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$hidden(
+						_elm_lang$core$List$isEmpty(entries)),
+					_1: {ctor: '[]'}
+				}
 			},
 			{
 				ctor: '::',
-				_0: A3(_evancz$elm_todomvc$Todo$visibilitySwitch, '#/', 'All', visibility),
+				_0: A2(_elm_lang$html$Html_Lazy$lazy, _evancz$elm_todomvc$Todo$renderControlsCount, entriesLeft),
 				_1: {
 					ctor: '::',
-					_0: A3(_evancz$elm_todomvc$Todo$visibilitySwitch, '#/active', 'Active', visibility),
+					_0: A2(_elm_lang$html$Html_Lazy$lazy, _evancz$elm_todomvc$Todo$renderControlsVisibility, visibility),
 					_1: {
 						ctor: '::',
-						_0: A3(_evancz$elm_todomvc$Todo$visibilitySwitch, '#/completed', 'Completed', visibility),
+						_0: A2(_elm_lang$html$Html_Lazy$lazy, _evancz$elm_todomvc$Todo$renderDeleteControl, entriesCompleted),
 						_1: {ctor: '[]'}
 					}
 				}
@@ -8946,7 +9055,7 @@ var _evancz$elm_todomvc$Todo$renderEntry = function (entry) {
 						_0: {
 							ctor: '_Tuple2',
 							_0: 'text-decoration',
-							_1: _evancz$elm_todomvc$Todo$getTaskColor(entry.completed)
+							_1: _evancz$elm_todomvc$Todo$getTaskTextDecoration(entry.completed)
 						},
 						_1: {
 							ctor: '::',
@@ -8963,6 +9072,13 @@ var _evancz$elm_todomvc$Todo$renderEntry = function (entry) {
 			_1: {ctor: '[]'}
 		});
 };
+var _evancz$elm_todomvc$Todo$renderKeyedEntry = function (task) {
+	return {
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Basics$toString(task.id),
+		_1: A2(_elm_lang$html$Html_Lazy$lazy, _evancz$elm_todomvc$Todo$renderEntry, task)
+	};
+};
 var _evancz$elm_todomvc$Todo$renderEntries = F2(
 	function (visibility, entries) {
 		var allCompleted = A2(
@@ -8973,8 +9089,8 @@ var _evancz$elm_todomvc$Todo$renderEntries = F2(
 			entries);
 		var cssVisibility = _elm_lang$core$List$isEmpty(entries) ? 'hidden' : 'visible';
 		var isVisible = function (task) {
-			var _p2 = visibility;
-			switch (_p2) {
+			var _p3 = visibility;
+			switch (_p3) {
 				case 'Completed':
 					return task.completed;
 				case 'Active':
@@ -9043,11 +9159,15 @@ var _evancz$elm_todomvc$Todo$renderEntries = F2(
 					_1: {
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$ul,
-							{ctor: '[]'},
+							_elm_lang$html$Html_Keyed$ul,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('todo-list'),
+								_1: {ctor: '[]'}
+							},
 							A2(
 								_elm_lang$core$List$map,
-								_evancz$elm_todomvc$Todo$renderEntry,
+								_evancz$elm_todomvc$Todo$renderKeyedEntry,
 								A2(_elm_lang$core$List$filter, isVisible, entries))),
 						_1: {ctor: '[]'}
 					}
@@ -9137,14 +9257,67 @@ var _evancz$elm_todomvc$Todo$view = function (model) {
 			_1: {ctor: '[]'}
 		});
 };
-var _evancz$elm_todomvc$Todo$main = _elm_lang$html$Html$program(
-	{
-		init: _evancz$elm_todomvc$Todo$init(
-			_elm_lang$core$Maybe$Just(_evancz$elm_todomvc$Todo$emptyModel)),
-		view: _evancz$elm_todomvc$Todo$view,
-		update: _evancz$elm_todomvc$Todo$update,
-		subscriptions: _evancz$elm_todomvc$Todo$subscriptions
-	})();
+var _evancz$elm_todomvc$Todo$main = _elm_lang$html$Html$programWithFlags(
+	{init: _evancz$elm_todomvc$Todo$init, view: _evancz$elm_todomvc$Todo$view, update: _evancz$elm_todomvc$Todo$updateWithStorage, subscriptions: _evancz$elm_todomvc$Todo$subscriptions})(
+	_elm_lang$core$Json_Decode$oneOf(
+		{
+			ctor: '::',
+			_0: _elm_lang$core$Json_Decode$null(_elm_lang$core$Maybe$Nothing),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$core$Json_Decode$map,
+					_elm_lang$core$Maybe$Just,
+					A2(
+						_elm_lang$core$Json_Decode$andThen,
+						function (entries) {
+							return A2(
+								_elm_lang$core$Json_Decode$andThen,
+								function (field) {
+									return A2(
+										_elm_lang$core$Json_Decode$andThen,
+										function (uid) {
+											return A2(
+												_elm_lang$core$Json_Decode$andThen,
+												function (visibility) {
+													return _elm_lang$core$Json_Decode$succeed(
+														{entries: entries, field: field, uid: uid, visibility: visibility});
+												},
+												A2(_elm_lang$core$Json_Decode$field, 'visibility', _elm_lang$core$Json_Decode$string));
+										},
+										A2(_elm_lang$core$Json_Decode$field, 'uid', _elm_lang$core$Json_Decode$int));
+								},
+								A2(_elm_lang$core$Json_Decode$field, 'field', _elm_lang$core$Json_Decode$string));
+						},
+						A2(
+							_elm_lang$core$Json_Decode$field,
+							'entries',
+							_elm_lang$core$Json_Decode$list(
+								A2(
+									_elm_lang$core$Json_Decode$andThen,
+									function (completed) {
+										return A2(
+											_elm_lang$core$Json_Decode$andThen,
+											function (description) {
+												return A2(
+													_elm_lang$core$Json_Decode$andThen,
+													function (editing) {
+														return A2(
+															_elm_lang$core$Json_Decode$andThen,
+															function (id) {
+																return _elm_lang$core$Json_Decode$succeed(
+																	{completed: completed, description: description, editing: editing, id: id});
+															},
+															A2(_elm_lang$core$Json_Decode$field, 'id', _elm_lang$core$Json_Decode$int));
+													},
+													A2(_elm_lang$core$Json_Decode$field, 'editing', _elm_lang$core$Json_Decode$bool));
+											},
+											A2(_elm_lang$core$Json_Decode$field, 'description', _elm_lang$core$Json_Decode$string));
+									},
+									A2(_elm_lang$core$Json_Decode$field, 'completed', _elm_lang$core$Json_Decode$bool)))))),
+				_1: {ctor: '[]'}
+			}
+		}));
 var _evancz$elm_todomvc$Todo$NoOp = {ctor: 'NoOp'};
 
 var Elm = {};
